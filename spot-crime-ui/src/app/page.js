@@ -19,23 +19,7 @@ export default function Home() {
         <Box sx={{ height: '400px', my: 4 }}>
           <Map />
         </Box>
-        {/* <Box sx={{ mt: 4 }}>
-          <Button variant="contained" color="primary" sx={{ mr: 2 }}>
-            <Link href="/report" passHref legacyBehavior>
-              <a style={{ color: 'inherit', textDecoration: 'none' }}>Report a Crime</a>
-            </Link>
-          </Button>
-          <Button variant="outlined" color="primary" sx={{ mr: 2 }}>
-            <Link href="/view" passHref legacyBehavior>
-              <a style={{ color: 'inherit', textDecoration: 'none' }}>View Reports</a>
-            </Link>
-          </Button>
-          <Button variant="outlined" color="secondary">
-            <Link href="/forum" passHref legacyBehavior>
-              <a style={{ color: 'inherit', textDecoration: 'none' }}>Discussion Forum</a>
-            </Link>
-          </Button>
-        </Box> */}
+        <tableau-viz id='tableau-viz' src='https://public.tableau.com/views/SpotCrime/Sheet1?:language=en-GB&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link' width='1536' height='655' hide-tabs toolbar='bottom' ></tableau-viz>
       </Box>
     </Box>
   );
