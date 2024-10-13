@@ -83,23 +83,21 @@ app.put('/api/crimes/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (id > 0) {
-      const result = await pool.query(`SELECT * FROM californiacrimereport where id = ${id}`); // Replace 'your_table' with the table you're querying
+      const result = await pool.query(`SELECT * FROM californiacrimereport where reportId = ${id}`); // Replace 'your_table' with the table you're querying
       let data = result.rows.length > 0 ? result.rows[0] : null;
       if (data) {
-        if (result.rows.length > 0) {
-          data.vote = data.vote + 1;
-          if (!data.tb && data.vote >= 5) {
-            data.tb = true;
-            let insertQuery = `INSERT INTO californiacrime (crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon) VALUES ('${data.crm_cd_desc}', '${data.date_rptd}', '${data.date_occ}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon})`;
-            await pool.query(insertQuery);
-          }
+        data.vote = data.vote + 1;
+        if (!data.tb && data.vote >= 5) {
+          data.tb = true;
+          let insertQuery = `INSERT INTO californiacrime (crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon) VALUES ('${data.crm_cd_desc}', '${new Date(data.date_rptd).toISOString().slice(0,10)}', '${new Date(data.date_occ).toISOString().slice(0,10)}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon})`;
+          await pool.query(insertQuery);
         }
-        const result2 = await pool.query(`UPDATE californiacrimereport SET vote=${data.vote}, tb=${data.tb} WHERE id = ${id}`);
+        const result2 = await pool.query(`UPDATE californiacrimereport SET vote=${data.vote}, tb=${data.tb} WHERE reportId = ${id}`);
         res.json({ message: "Data updated successfully...", data: result2.rows, status: true });
-      }else{
+      } else {
         res.json({ message: "Data not found...", data: null, status: false });
       }
-    }else{
+    } else {
       res.json({ message: "Invalid id...", data: null, status: false });
     }
   } catch (err) {
