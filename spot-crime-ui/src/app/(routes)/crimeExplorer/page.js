@@ -29,7 +29,7 @@ const CrimeExplorer = () => {
 
   const fetchCrimes = async (placeId=null) => {
     try {
-      let url = 'http://localhost:5000/api/crimes'
+      let url = 'https://deep-beanbag-438516-i4.uc.r.appspot.com/api/crimes'
       if(placeId) {
         url += `?placeId=${placeId}`
       }
@@ -56,7 +56,7 @@ const CrimeExplorer = () => {
 
   const handleUpvote = async (reportId) => {
     try {
-      await axios.put(`http://localhost:5000/api/crimes/${reportId}`);
+      await axios.put(`https://deep-beanbag-438516-i4.uc.r.appspot.com/api/crimes/${reportId}`);
       await fetchCrimes();
     } catch (error) {
       console.error('Error upvoting crime:', error);
@@ -66,7 +66,7 @@ const CrimeExplorer = () => {
   const getAddressSuggestions = async (input) => {
     try {
       if (input.length > 2) {
-        const response = await axios.get(`http://localhost:5000/api/autocomplete?input=${encodeURIComponent(input)}`);
+        const response = await axios.get(`https://deep-beanbag-438516-i4.uc.r.appspot.com/api/autocomplete?input=${encodeURIComponent(input)}`);
         const suggestions = response.data.predictions.map(prediction => ({
           description: prediction.description,
           placeId: prediction.placeId

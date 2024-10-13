@@ -18,7 +18,7 @@ const ReportCrime = ({ onSubmit, onClose }) => {
     useEffect(() => {
         const fetchCrimeCategories = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/crimecategory');
+                const response = await axios.get('https://deep-beanbag-438516-i4.uc.r.appspot.com/api/crimecategory');
                 setCrimeCategories(response.data.map(category => category.crm_cd_desc));
             } catch (error) {
                 console.error('Error fetching crime categories:', error);
@@ -30,7 +30,7 @@ const ReportCrime = ({ onSubmit, onClose }) => {
     const getAddressSuggestions = async (input) => {
         try {
             if (input.length > 2) {
-                const response = await axios.get(`http://localhost:5000/api/autocomplete?input=${encodeURIComponent(input)}`);
+                const response = await axios.get(`https://deep-beanbag-438516-i4.uc.r.appspot.com/api/autocomplete?input=${encodeURIComponent(input)}`);
                 const suggestions = response.data.predictions.map(prediction => ({
                     description: prediction.description,
                     placeId: prediction.placeId
@@ -62,7 +62,7 @@ const ReportCrime = ({ onSubmit, onClose }) => {
             crimeTime: dateTime.format('HHmm')
         }
         try {
-            const response = await axios.post('http://localhost:5000/api/crimes', newCrime);
+            const response = await axios.post('https://deep-beanbag-438516-i4.uc.r.appspot.com/api/crimes', newCrime);
             onSubmit(newCrime)
             // Reset form fields
             setAddress(null)

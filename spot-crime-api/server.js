@@ -6,7 +6,7 @@ const axios = require('axios');
 
 // Initialize express app
 const app = express();
-const PORT = 5000;
+const PORT = 8080;
 
 // Middleware
 app.use(cors()); // Allows requests from your React app
