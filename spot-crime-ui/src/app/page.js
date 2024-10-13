@@ -44,6 +44,8 @@ export default function Home() {
             <Typography variant="h5" component="h2" gutterBottom>
               Stay informed about local incidents and keep your community safe
             </Typography>
+            <tableau-viz id='tableau-viz' src='https://us-east-1.online.tableau.com/t/jxg4182-9b5d0e511d/views/SPOTCRIMEV1/SPOTCRIME' width='1536' height='655' hide-tabs toolbar='bottom' ></tableau-viz>
+            {/* <tableau-viz id='tableau-viz' src='https://public.tableau.com/shared/BS2PPY233?:display_count=n&:origin=viz_share_link' width='1536' height='655' hide-tabs toolbar='bottom' ></tableau-viz> */}
           </Box>
         </Container>
         <CrimeExplorerDialog open={openDialog} onClose={handleCloseDialog} />

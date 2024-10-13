@@ -4,16 +4,12 @@ import ReportCrime from './reportCrime';
 import CrimePost from './crimePost';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-const CrimeExplorerDialog = ({ open, onClose }) => {
+const CrimeExplorerDialog = ({ open, onClose, onSubmit }) => {
   const [crimes, setCrimes] = useState([]); // This would be populated from your API
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const handleOpenReportDialog = () => setOpenReportDialog(true);
   const handleCloseReportDialog = () => setOpenReportDialog(false);
 
-  useEffect(() => {
-    // Fetch crimes from API (commented out for now)
-    // fetchCrimes();
-  }, []);
 
   const theme = createTheme({
     palette: {
@@ -24,8 +20,7 @@ const CrimeExplorerDialog = ({ open, onClose }) => {
   });
 
   const handleSubmitReport = (newCrime) => {
-    setCrimes([...crimes, newCrime]);
-    handleCloseReportDialog();
+    onSubmit();
   };
 
   return (

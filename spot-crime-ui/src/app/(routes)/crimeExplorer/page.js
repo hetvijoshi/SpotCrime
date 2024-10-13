@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Typography, Box, Paper, Button, ThemeProvider, createTheme } from '@mui/material'
 import CrimePost from '../../components/crimePost'
 import CrimeExplorerDialog from '../../components/CrimeExplorerDialog'
+import axios from 'axios'
 
 const theme = createTheme({
   palette: {
@@ -21,34 +22,39 @@ const theme = createTheme({
 });
 
 const CrimeExplorer = () => {
-  const [crimes, setCrimes] = useState([
-    {
-      address: '123 Main St',
-      city: 'Los Angeles',
-      state: 'California',
-      dateTime: new Date('2023-05-15T14:30:00'),
-      description: 'Suspicious activity observed near the local park.'
-    },
-    {
-      address: '456 Elm St',
-      city: 'Los Angeles',
-      state: 'California',
-      dateTime: new Date('2023-05-14T10:15:00'),
-      description: 'Reported noise disturbance in residential area.'
-    },
-    {
-      address: '789 Oak Ave',
-      city: 'Los Angeles',
-      state: 'California',
-      dateTime: new Date('2023-05-13T20:45:00'),
-      description: 'Vandalism reported at local business.'
-    }
-  ]) // Initialized with dummy crime data
+  const [crimes, setCrimes] = useState([])
   const [open, setOpen] = useState(false)
 
-  const handleNewCrimeReport = (newCrime) => {
-    setCrimes([newCrime, ...crimes])
-    setOpen(false)
+  const fetchCrimes = async () => {
+    try {
+      await axios.get('http://localhost:3001/api/crimes').then(res => {
+        setCrimes(res.data)
+      })
+    } catch (error) {
+      console.error('Error fetching crimes:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchCrimes()
+  }, [])
+
+  const handleNewCrimeReport = async (newCrime) => {
+    try {
+      fetchCrimes()
+      setOpen(false)
+    } catch (error) {
+      console.error('Error submitting new crime:', error)
+    }
+  }
+
+  const handleUpvote = async (reportId) => {
+    try {
+      await axios.put(`http://localhost:3001/api/crimes/${reportId}`);
+      await fetchCrimes();
+    } catch (error) {
+      console.error('Error upvoting crime:', error);
+    }
   }
 
   return (
@@ -77,7 +83,7 @@ const CrimeExplorer = () => {
             {crimes.length > 0 ? (
               crimes.map((crime, index) => (
                 <Box key={index} elevation={2} sx={{ p: 3, mb: 3, borderRadius: '8px' }}>
-                  <CrimePost crime={crime} />
+                  <CrimePost crime={crime} handleUpvote={handleUpvote} />
                 </Box>
               ))
             ) : (
