@@ -71,7 +71,7 @@ app.get('/api/autocomplete', async (req, res) => {
 
 app.get('/api/crimes', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM californiacrimereport where tb=false'); // Replace 'your_table' with the table you're querying
+    const result = await pool.query('SELECT * FROM californiacrimereport'); // Replace 'your_table' with the table you're querying
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);
