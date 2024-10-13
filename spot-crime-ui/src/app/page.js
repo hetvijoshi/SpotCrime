@@ -25,7 +25,6 @@ const theme = createTheme({
 export default function Home() {
   const [openDialog, setOpenDialog] = useState(false);
 
-  const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
 
   return (
