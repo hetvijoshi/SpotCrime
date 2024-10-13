@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Container, Typography, Box, Paper, Button, ThemeProvider, createTheme } from '@mui/material'
+import { Container, Typography, Box, Paper, Button, ThemeProvider, createTheme, Autocomplete, TextField } from '@mui/material'
 import CrimePost from '../../components/crimePost'
 import CrimeExplorerDialog from '../../components/CrimeExplorerDialog'
 import axios from 'axios'
@@ -24,10 +24,16 @@ const theme = createTheme({
 const CrimeExplorer = () => {
   const [crimes, setCrimes] = useState([])
   const [open, setOpen] = useState(false)
+  const [addressSuggestions, setAddressSuggestions] = useState([])
+  const [address, setAddress] = useState(null)
 
-  const fetchCrimes = async () => {
+  const fetchCrimes = async (placeId=null) => {
     try {
-      await axios.get('http://localhost:3001/api/crimes').then(res => {
+      let url = 'http://localhost:5000/api/crimes'
+      if(placeId) {
+        url += `?placeId=${placeId}`
+      }
+      await axios.get(url).then(res => {
         setCrimes(res.data)
       })
     } catch (error) {
@@ -50,10 +56,35 @@ const CrimeExplorer = () => {
 
   const handleUpvote = async (reportId) => {
     try {
-      await axios.put(`http://localhost:3001/api/crimes/${reportId}`);
+      await axios.put(`http://localhost:5000/api/crimes/${reportId}`);
       await fetchCrimes();
     } catch (error) {
       console.error('Error upvoting crime:', error);
+    }
+  }
+
+  const getAddressSuggestions = async (input) => {
+    try {
+      if (input.length > 2) {
+        const response = await axios.get(`http://localhost:5000/api/autocomplete?input=${encodeURIComponent(input)}`);
+        const suggestions = response.data.predictions.map(prediction => ({
+          description: prediction.description,
+          placeId: prediction.placeId
+        }));
+        setAddressSuggestions(suggestions);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    }
+  }
+
+  const handleAddressChange = (event, newValue) => {
+    fetchCrimes(newValue.placeId);
+  }
+
+  const handleAddressInputChange = (event, newInputValue) => {
+    if (newInputValue.length > 2) {
+      getAddressSuggestions(newInputValue);
     }
   }
 
@@ -75,7 +106,24 @@ const CrimeExplorer = () => {
                 Report a Crime
               </Button>
             </Box>
-
+            <Autocomplete
+              fullWidth
+              options={addressSuggestions}
+              getOptionLabel={(option) => option.description || ""}
+              value={address}
+              onChange={handleAddressChange}
+              onInputChange={handleAddressInputChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Address"
+                  required
+                  placeholder="Enter an address"
+                  sx={{ '& .MuiInputBase-input': { width: '100%' }, 'marginBottom': '50px' }}
+                />
+              )}
+              isOptionEqualToValue={(option, value) => option.placeId === value.placeId}
+            />
             <Typography variant="h5" component="h2" gutterBottom sx={{ mb: 3 }}>
               Recent Crime Reports
             </Typography>

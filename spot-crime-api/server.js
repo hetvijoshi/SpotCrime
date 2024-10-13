@@ -70,9 +70,24 @@ app.get('/api/autocomplete', async (req, res) => {
 });
 
 app.get('/api/crimes', async (req, res) => {
+  const placeId = req.query.placeId;
+
   try {
-    const result = await pool.query('SELECT * FROM californiacrimereport'); // Replace 'your_table' with the table you're querying
-    res.json(result.rows);
+    if (placeId != null) {
+      const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`)
+      const location = respone.data.result.geometry.location;
+      if (location.lat != null && location.lng != null) {
+        const ranges = getLatLonRange(location.lat, location.lng, 1);
+        console.log(ranges)
+        const result = await pool.query(`SELECT * FROM californiacrimereport WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon})`); // Replace 'your_table' with the table you're querying
+        res.json(result.rows);
+      } else {
+        res.json({ message: "Invalid placeId...", data: null, status: false });
+      }
+    } else {
+      const result = await pool.query('SELECT * FROM californiacrimereport'); // Replace 'your_table' with the table you're querying
+      res.json(result.rows);
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: 'Database error' });
@@ -89,7 +104,7 @@ app.put('/api/crimes/:id', async (req, res) => {
         data.vote = data.vote + 1;
         if (!data.tb && data.vote >= 5) {
           data.tb = true;
-          let insertQuery = `INSERT INTO californiacrime (crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon) VALUES ('${data.crm_cd_desc}', '${new Date(data.date_rptd).toISOString().slice(0,10)}', '${new Date(data.date_occ).toISOString().slice(0,10)}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon})`;
+          let insertQuery = `INSERT INTO californiacrime (crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon) VALUES ('${data.crm_cd_desc}', '${new Date(data.date_rptd).toISOString().slice(0, 10)}', '${new Date(data.date_occ).toISOString().slice(0, 10)}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon})`;
           await pool.query(insertQuery);
         }
         const result2 = await pool.query(`UPDATE californiacrimereport SET vote=${data.vote}, tb=${data.tb} WHERE reportId = ${id}`);

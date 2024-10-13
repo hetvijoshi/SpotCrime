@@ -10,7 +10,7 @@ const CrimePost = ({ crime , handleUpvote}) => {
           {crime.location}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {dayjs(crime.date_occ).format('MM/DD/YYYY')} | {dayjs(`2000-01-01 ${crime.time_occ.slice(0, 2)}:${crime.time_occ.slice(2)}`).format('h:mm A')}
+         {crime.crm_cd_desc} | {dayjs(crime.date_occ).format('MM/DD/YYYY')} | {dayjs(`2000-01-01 ${crime.time_occ.slice(0, 2)}:${crime.time_occ.slice(2)}`).format('h:mm A')}
         </Typography>
         <Typography variant="body1" paragraph>
           {crime.description}
