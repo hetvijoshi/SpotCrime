@@ -25,11 +25,11 @@ jobs:
           credentials_json: '${{ secrets.GCLOUD_AUTH }}'
 
       - name: Deploy to backend on App Engine
-        run: gcloud app deploy ./spot-crime-api/app.yaml --quiet
+        run: gcloud app deploy ../spot-crime-api/app.yaml --quiet
         env:
           GCLOUD_AUTH: ${{ secrets.GCLOUD_AUTH }}
 
       - name: Deploy to frontend on App Engine
-        run: gcloud app deploy ./spot-crime-ui/app.yaml --quiet
+        run: gcloud app deploy ../spot-crime-ui/app.yaml --quiet
         env:
           GCLOUD_AUTH: ${{ secrets.GCLOUD_AUTH }}
