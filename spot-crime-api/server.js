@@ -78,7 +78,6 @@ app.get('/api/crimes', async (req, res) => {
       const location = respone.data.result.geometry.location;
       if (location.lat != null && location.lng != null) {
         const ranges = getLatLonRange(location.lat, location.lng, 1);
-        console.log(ranges)
         const result = await pool.query(`SELECT * FROM californiacrimereport WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon})`); // Replace 'your_table' with the table you're querying
         res.json(result.rows);
       } else {
