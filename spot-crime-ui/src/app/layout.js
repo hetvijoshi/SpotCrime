@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Typography, Container, Box, Link } from '@mui/material
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import "./globals.css";
+import { Helmet } from 'react-helmet';
 
 const theme = createTheme({
   palette: {
@@ -62,6 +63,10 @@ function Footer() {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <Helmet>
+        <script type='module' src='https://us-east-1.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js'></script>
+        {/* <script type='module' src='https://public.tableau.com/javascripts/api/viz_v1.js'></script> */}
+      </Helmet>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
