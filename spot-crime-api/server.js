@@ -14,14 +14,14 @@ app.use(express.json()); // Parses incoming JSON requests
 
 // PostgreSQL configuration
 const pool = new Pool({
-    user: 'academiverse_db', // Your PostgreSQL username
-    host: 'academiverse.cjou44q26b2s.us-east-1.rds.amazonaws.com', // Hostname (usually 'localhost' if running locally)
-    database: 'academiverse', // Your PostgreSQL database name
-    password: 'Academiverse#2024', // Your PostgreSQL password
-    port: 5432, // Default PostgreSQL port
-    ssl: {
-        rejectUnauthorized: false,  // Allow self-signed certificates
-      },
+  user: 'academiverse_db', // Your PostgreSQL username
+  host: 'academiverse.cjou44q26b2s.us-east-1.rds.amazonaws.com', // Hostname (usually 'localhost' if running locally)
+  database: 'academiverse', // Your PostgreSQL database name
+  password: 'Academiverse#2024', // Your PostgreSQL password
+  port: 5432, // Default PostgreSQL port
+  ssl: {
+    rejectUnauthorized: false,  // Allow self-signed certificates
+  },
 });
 
 // Connect to the database and check connection status
@@ -45,7 +45,7 @@ app.get('/api/crimecategory', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: 'Database error'});
+    res.status(500).json({ error: 'Database error' });
   }
 });
 
@@ -55,31 +55,81 @@ app.get('/api/autocomplete', async (req, res) => {
   const radius = 50000;
 
   try {
-      const response = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&location=${location}&radius=${radius}&strictbounds=true&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`);
-      response.data.predictions = response.data.predictions.map(prediction => {
-          return {
-              description: prediction.description,
-              placeId: prediction.place_id
-          }
-      });
-      res.json(response.data);  // Send the response back to the frontend
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&location=${location}&radius=${radius}&strictbounds=true&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`);
+    response.data.predictions = response.data.predictions.map(prediction => {
+      return {
+        description: prediction.description,
+        placeId: prediction.place_id
+      }
+    });
+    res.json(response.data);  // Send the response back to the frontend
   } catch (error) {
     console.log(error)
-      res.status(500).send(JSON.stringify(error));
+    res.status(500).send(JSON.stringify(error));
   }
 });
 
 app.post('/api/crimes', async (req, res) => {
   try {
     const placeId = req.body.placeId;
+    const category = req.body.crimeCategory;
     const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`)
     const location = respone.data.result.geometry.location;
-    const result = await pool.query('SELECT DISTINCT crm_cd_desc FROM californiacrime'); // Replace 'your_table' with the table you're querying
+    let ranges
+    if (location) {
+      ranges = getLatLonRange(location.lat, location.lng, 1);
+    }
+    const result = await pool.query(`SELECT CRM_CD_DESC,COUNT(*) FROM CALIFORNIACRIME WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon}) GROUP BY CRM_CD_DESC ORDER BY COUNT(*) DESC LIMIT 5;`); // Replace 'your_table' with the table you're querying
+    let data = {
+      description: req.body.description,
+      crm_cd_desc: category,
+      date_rptd: req.body.crimeDate,
+      date_occ: req.body.crimeDate,
+      time_occ: req.body.crimeTime,
+      location: respone.data.result.name,
+      lat: location.lat,
+      lon: location.lng,
+      tb: false,
+      vote: 1
+    }
+    if (result.rows.findIndex(x => x.crm_cd_desc == category) >= 0) {
+      data.tb = true;
+      let insertQuery = `INSERT INTO californiacrime (crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon) VALUES ('${data.crm_cd_desc}', '${data.date_rptd}', '${data.date_occ}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon})`;
+      await pool.query(insertQuery);
+    }
+    
+    let insertQuery = `INSERT INTO californiacrimereport (description, crm_cd_desc, date_rptd, date_occ, time_occ, location, lat, lon, tb, vote) VALUES ('${data.description}', '${data.crm_cd_desc}', '${data.date_rptd}', '${data.date_occ}', '${data.time_occ}', '${data.location}', ${data.lat}, ${data.lon}, ${data.tb}, ${data.vote})`;
+    await pool.query(insertQuery);
+    res.json({ message: "Data inserted into tableau successfully...", data: data, status: true });
   } catch (error) {
+    console.log(error)
     res.status(500).send(JSON.stringify(error));
   }
 });
 
+function getLatLonRange(lat, lon, radiusInMiles = 1) {
+  const milesPerDegreeLat = 69.0; // Approximation
+  const milesPerDegreeLonAtEquator = 69.172; // At equator, varies with latitude
+
+  // Convert the radius in miles to latitude/longitude degrees
+  const latRange = radiusInMiles / milesPerDegreeLat;
+  const lonRange = radiusInMiles / (milesPerDegreeLonAtEquator * Math.cos(lat * Math.PI / 180));
+
+  // Latitude range
+  const minLat = lat - latRange;
+  const maxLat = lat + latRange;
+
+  // Longitude range
+  const minLon = lon - lonRange;
+  const maxLon = lon + lonRange;
+
+  return {
+    minLat,
+    maxLat,
+    minLon,
+    maxLon
+  };
+}
 
 // Start the server
 app.listen(PORT, () => {
