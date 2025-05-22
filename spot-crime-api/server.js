@@ -9,18 +9,18 @@ const app = express();
 const PORT = 8080;
 
 // Middleware
-app.use(cors()); // Allows requests from your React app
-app.use(express.json()); // Parses incoming JSON requests
+app.use(cors());
+app.use(express.json());
 
 // PostgreSQL configuration
 const pool = new Pool({
-  user: 'academiverse_db', // Your PostgreSQL username
-  host: 'academiverse.cjou44q26b2s.us-east-1.rds.amazonaws.com', // Hostname (usually 'localhost' if running locally)
-  database: 'academiverse', // Your PostgreSQL database name
-  password: 'Academiverse#2024', // Your PostgreSQL password
-  port: 5432, // Default PostgreSQL port
+  user: 'academiverse_db',
+  host: '',
+  database: '', 
+  password: '', 
+  port: 5432, 
   ssl: {
-    rejectUnauthorized: false,  // Allow self-signed certificates
+    rejectUnauthorized: false,
   },
 });
 
@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 // to get distinct category of crimes
 app.get('/api/crimecategory', async (req, res) => {
   try {
-    const result = await pool.query('SELECT DISTINCT crm_cd_desc FROM californiacrime'); // Replace 'your_table' with the table you're querying
+    const result = await pool.query('SELECT DISTINCT crm_cd_desc FROM californiacrime');
     res.json(result.rows);
   } catch (err) {
     console.error(err.message);
@@ -55,7 +55,7 @@ app.get('/api/autocomplete', async (req, res) => {
   const radius = 50000;
 
   try {
-    const response = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&location=${location}&radius=${radius}&strictbounds=true&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`);
+    const response = await axios.get(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&location=${location}&radius=${radius}&strictbounds=true&key=${GOOGLEPLACE_KEY}`);
     response.data.predictions = response.data.predictions.map(prediction => {
       return {
         description: prediction.description,
@@ -74,17 +74,17 @@ app.get('/api/crimes', async (req, res) => {
 
   try {
     if (placeId != null) {
-      const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`)
+      const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLEPLACE_KEY}`)
       const location = respone.data.result.geometry.location;
       if (location.lat != null && location.lng != null) {
         const ranges = getLatLonRange(location.lat, location.lng, 1);
-        const result = await pool.query(`SELECT * FROM californiacrimereport WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon})`); // Replace 'your_table' with the table you're querying
+        const result = await pool.query(`SELECT * FROM californiacrimereport WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon})`);
         res.json(result.rows);
       } else {
         res.json({ message: "Invalid placeId...", data: null, status: false });
       }
     } else {
-      const result = await pool.query('SELECT * FROM californiacrimereport'); // Replace 'your_table' with the table you're querying
+      const result = await pool.query('SELECT * FROM californiacrimereport');
       res.json(result.rows);
     }
   } catch (err) {
@@ -97,7 +97,7 @@ app.put('/api/crimes/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (id > 0) {
-      const result = await pool.query(`SELECT * FROM californiacrimereport where reportId = ${id}`); // Replace 'your_table' with the table you're querying
+      const result = await pool.query(`SELECT * FROM californiacrimereport where reportId = ${id}`);
       let data = result.rows.length > 0 ? result.rows[0] : null;
       if (data) {
         data.vote = data.vote + 1;
@@ -124,13 +124,13 @@ app.post('/api/crimes', async (req, res) => {
   try {
     const placeId = req.body.placeId;
     const category = req.body.crimeCategory;
-    const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyCGCejPxj93O5lcGEezTVJ7QhO6YvC-oMw`)
+    const respone = await axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${GOOGLEPLACE_KEY}`)
     const location = respone.data.result.geometry.location;
     let ranges
     if (location) {
       ranges = getLatLonRange(location.lat, location.lng, 1);
     }
-    const result = await pool.query(`SELECT CRM_CD_DESC,COUNT(*) FROM CALIFORNIACRIME WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon}) GROUP BY CRM_CD_DESC ORDER BY COUNT(*) DESC LIMIT 5;`); // Replace 'your_table' with the table you're querying
+    const result = await pool.query(`SELECT CRM_CD_DESC,COUNT(*) FROM CALIFORNIACRIME WHERE ( LAT BETWEEN ${ranges.minLat} AND ${ranges.maxLat} )AND ( LON BETWEEN ${ranges.minLon} AND ${ranges.maxLon}) GROUP BY CRM_CD_DESC ORDER BY COUNT(*) DESC LIMIT 5;`);
     let data = {
       description: req.body.description,
       crm_cd_desc: category,
@@ -159,8 +159,8 @@ app.post('/api/crimes', async (req, res) => {
 });
 
 function getLatLonRange(lat, lon, radiusInMiles = 1) {
-  const milesPerDegreeLat = 69.0; // Approximation
-  const milesPerDegreeLonAtEquator = 69.172; // At equator, varies with latitude
+  const milesPerDegreeLat = 69.0;
+  const milesPerDegreeLonAtEquator = 69.172;
 
   // Convert the radius in miles to latitude/longitude degrees
   const latRange = radiusInMiles / milesPerDegreeLat;
